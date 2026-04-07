@@ -30,7 +30,6 @@
     min-height: 100dvh;
     overflow-x: hidden;
   }
-  /* الخلفية المتدرجة */
   body::before {
     content:''; position:fixed; inset:0;
     background: radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,45,85,0.12) 0%, transparent 60%),
@@ -43,7 +42,6 @@
     padding:20px 16px 40px;
     display:flex; flex-direction:column; gap:16px;
   }
-
   header { text-align:center; padding:20px 0; }
   .logo-icon {
     width:60px; height:60px; border-radius:20px;
@@ -56,36 +54,28 @@
   .logo-text span:first-child{color:var(--red);}
   .logo-text span:last-child{color:var(--cyan);}
 
-  /* تنبيه المشاركة */
   #shared-toast {
     display:none; background:rgba(0,242,234,0.15);
     border:1px solid var(--cyan); border-radius:12px;
     padding:12px; margin-bottom:10px; text-align:center;
-    animation: fadeIn 0.5s ease;
+    animation: fadeIn 0.5s ease; font-size: 14px;
   }
   #shared-toast.show { display:block; }
 
-  /* مدخلات الرابط */
-  .input-card {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:20px; padding:20px;
-  }
+  .input-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:20px; }
   .input-wrap { display:flex; gap:8px; margin-bottom:12px; }
   .url-input {
     flex:1; background:var(--surface2); border:1px solid var(--border);
     border-radius:12px; padding:12px; color:#fff; font-family:inherit; outline:none;
   }
-  .paste-btn {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:12px; padding:0 15px; color:var(--cyan); cursor:pointer;
-  }
+  .paste-btn { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:0 15px; color:var(--cyan); cursor:pointer; }
   .fetch-btn {
     width:100%; background:linear-gradient(135deg,var(--red),var(--cyan));
     border:none; border-radius:12px; padding:15px; color:#fff;
     font-weight:700; font-size:16px; cursor:pointer;
   }
+  .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* النتائج */
   .result-card {
     display:none; background:var(--surface); border:1px solid var(--border);
     border-radius:20px; overflow:hidden; animation: slideUp 0.4s ease;
@@ -97,10 +87,10 @@
   .dl-btn {
     width:100%; background:rgba(255,45,85,0.1); border:1px solid var(--red);
     color:#fff; padding:15px; border-radius:12px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:10px;
+    display:flex; align-items:center; justify-content:center; gap:10px; transition: 0.3s;
   }
+  .dl-btn:disabled { border-color: gray; color: gray; }
 
-  /* Loading */
   .loading { display:none; text-align:center; padding:20px; }
   .loading.show { display:block; }
   .loader {
@@ -123,7 +113,7 @@
     <p style="color:var(--muted); font-size:12px; margin-top:5px;">تحميل فيديو تيك توك بدون علامة مائية</p>
   </header>
 
-  <div id="shared-toast">⚡ تم استلام الرابط.. جاري التحميل تلقائياً</div>
+  <div id="shared-toast">⚡ تم استلام الرابط.. جاري التجهيز تلقائياً</div>
 
   <div class="input-card">
     <div class="input-wrap">
@@ -135,20 +125,20 @@
 
   <div class="loading" id="loading">
     <div class="loader"></div>
-    <p>لحظة واحدة...</p>
+    <p>جاري جلب الفيديو من السيرفر...</p>
   </div>
 
   <div class="result-card" id="resultCard">
     <div class="video-preview">
       <img class="video-thumb" id="thumb" src="">
-      <div style="position:absolute; top:10px; right:10px; background:var(--red); padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700;">بدون علامة ✓</div>
+      <div style="position:absolute; top:10px; right:10px; background:var(--red); padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700;">MP4 VIDEO ✓</div>
     </div>
     <div style="padding:15px; border-bottom:1px solid var(--border);">
        <p id="videoTitle" style="font-size:13px; color:var(--muted);"></p>
     </div>
     <div class="dl-section">
-      <button class="dl-btn" onclick="doDownload()">
-        <span>⬇️</span> تحميل الفيديو بجودة HD
+      <button class="dl-btn" id="mainDlBtn" onclick="doDownload()">
+        <span>⬇️</span> تحميل الفيديو (MP4)
       </button>
     </div>
   </div>
@@ -157,35 +147,30 @@
 <script>
 let videoURL = "";
 
-// 1. كود تسجيل الـ Service Worker
+// تسجيل الخدمة (ضروري لظهور زر التثبيت)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 
-// 2. كود استقبال المشاركة (Share Target)
+// استقبال الروابط من قائمة المشاركة
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const sharedText = params.get('text') || params.get('url');
   
   if (sharedText) {
-    // استخراج الرابط من النص المشترك
     const match = sharedText.match(/https?:\/\/[^\s]+/);
     if (match) {
       document.getElementById('urlInput').value = match[0];
       document.getElementById('shared-toast').classList.add('show');
-      
-      // تنظيف الرابط في المتصفح عشان ما يكرر الجلب
       window.history.replaceState({}, '', window.location.pathname);
-      
       setTimeout(() => {
         document.getElementById('shared-toast').classList.remove('show');
         fetchVideo();
-      }, 800);
+      }, 1000);
     }
   }
 });
 
-// 3. وظائف التطبيق
 async function pasteURL() {
   try {
     const text = await navigator.clipboard.readText();
@@ -194,11 +179,13 @@ async function pasteURL() {
 }
 
 async function fetchVideo() {
-  const url = document.getElementById('urlInput').value.trim();
+  const urlInput = document.getElementById('urlInput');
+  const url = urlInput.value.trim();
   if(!url) return;
 
   document.getElementById('loading').classList.add('show');
   document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('fetchBtn').disabled = true;
 
   try {
     const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
@@ -208,25 +195,57 @@ async function fetchVideo() {
       const data = json.data;
       videoURL = data.hdplay || data.play;
       document.getElementById('thumb').src = data.cover;
-      document.getElementById('videoTitle').textContent = data.title || "فيديو تيك توك";
+      document.getElementById('videoTitle').textContent = data.title || "فيديو تيك توك بدون عنوان";
       document.getElementById('resultCard').classList.add('show');
     } else {
-      alert("عذراً، الرابط غير صحيح أو الفيديو خاص");
+      alert("خطأ: تأكد أن الرابط صحيح والفيديو عام وليس خاصاً");
     }
   } catch(e) {
-    alert("حدث خطأ في الاتصال بالسيرفر");
+    alert("حدث خطأ في الاتصال.. حاول مرة أخرى");
   } finally {
     document.getElementById('loading').classList.remove('show');
+    document.getElementById('fetchBtn').disabled = false;
   }
 }
 
-function doDownload() {
-  if(videoURL) {
+// وظيفة التحميل الذكية لضمان نزول ملف فيديو MP4
+async function doDownload() {
+  if (!videoURL) return;
+  
+  const btn = document.getElementById('mainDlBtn');
+  const originalContent = btn.innerHTML;
+  btn.innerHTML = "⏳ جاري التحميل...";
+  btn.disabled = true;
+
+  try {
+    // محاولة سحب الملف كـ Blob لإجبار المتصفح على تحميله كفيديو
+    const response = await fetch(videoURL);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    
     const a = document.createElement('a');
-    a.href = videoURL;
-    a.download = "ttsave_video.mp4";
-    a.target = "_blank";
+    a.style.display = 'none';
+    a.href = blobUrl;
+    a.download = `TT_Save_${Date.now()}.mp4`; // تسمية الملف بصيغة فيديو
+    document.body.appendChild(a);
     a.click();
+    
+    setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
+    }, 100);
+    
+    btn.innerHTML = "✅ اكتمل التحميل";
+  } catch (e) {
+    // حل احتياطي إذا فشل الـ Blob بسبب الحماية
+    window.open(videoURL, '_blank');
+    btn.innerHTML = "⬇️ افتح الرابط يدوياً";
+  } finally {
+    setTimeout(() => {
+      btn.innerHTML = originalContent;
+      btn.disabled = false;
+    }, 3000);
   }
 }
 </script>
