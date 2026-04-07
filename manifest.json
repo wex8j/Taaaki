@@ -1,23 +1,15 @@
 {
-  "name": "3TX | التحميل الذكي",
+  "name": "3TX Downloader",
   "short_name": "3TX",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#ff0050",
   "share_target": {
-    "action": "index.html",
+    "action": "/",
     "method": "GET",
     "params": {
+      "title": "title",
       "text": "text",
       "url": "url"
     }
-  },
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  }
 }
