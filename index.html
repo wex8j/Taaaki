@@ -1,104 +1,103 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#fe2c55">
-<title>TT Save - HD</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-
-<style>
-  :root { --red: #fe2c55; --cyan: #25f4ee; --bg: #000; }
-  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
-  body { background: var(--bg); color: #fff; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 15px; }
-  .card { width: 100%; max-width: 400px; background: #111; border-radius: 25px; padding: 25px; border: 1px solid #222; text-align: center; }
-  .logo { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
-  .logo span:first-child { color: var(--red); }
-  .logo span:last-child { color: var(--cyan); }
-  
-  input { width: 100%; background: #222; border: 1px solid #333; border-radius: 12px; padding: 15px; color: #fff; outline: none; margin-bottom: 15px; text-align: center; }
-  
-  .btn { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 12px; padding: 16px; font-weight: 700; font-size: 16px; cursor: pointer; }
-  
-  #res { display: none; margin-top: 20px; animation: fadeIn 0.4s; }
-  .preview { width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; }
-  
-  .dl-hd { width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 12px; padding: 18px; font-weight: 900; font-size: 17px; cursor: pointer; display: block; text-decoration: none; }
-  
-  .loader { display: none; margin: 15px 0; color: var(--cyan); font-size: 14px; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#fe2c55">
+    <title>تطبيق تحميل HD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --main: #fe2c55; --bg: #000; --card: #161618; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
+        body { background: var(--bg); color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .logo { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--main); }
+        input { width: 100%; background: #222; border: 2px solid #333; border-radius: 15px; padding: 15px; color: #fff; margin-bottom: 15px; outline: none; text-align: center; }
+        input:focus { border-color: var(--main); }
+        .btn { width: 100%; background: var(--main); color: #fff; border: none; border-radius: 15px; padding: 18px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
+        #result { display: none; margin-top: 25px; animation: fadeIn 0.5s; }
+        .preview { width: 100%; border-radius: 20px; margin-bottom: 15px; }
+        .dl-link { display: block; width: 100%; background: #fff; color: #000; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: 900; font-size: 18px; }
+        .loader { display: none; color: #555; margin: 15px 0; font-size: 14px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="logo"><span>TT</span><span>Save</span></div>
-  
-  <input type="url" id="linkInput" placeholder="ضع رابط الفيديو هنا...">
-  <button class="btn" id="goBtn" onclick="start()">استخراج الفيديو HD</button>
+<div class="container">
+    <div class="logo">TT Save HD</div>
+    
+    <input type="url" id="vUrl" placeholder="الصق الرابط هنا...">
+    <button class="btn" id="btn" onclick="fetchVideo()">استخراج الفيديو HD</button>
+    
+    <div class="loader" id="loading">⏳ جاري التحميل من السيرفر...</div>
 
-  <div class="loader" id="wait">⏳ جاري جلب الجودة العالية...</div>
-
-  <div id="res">
-    <img id="img" class="preview">
-    <button class="dl-hd" onclick="downloadNow()">📥 تحميل الفيديو HD الآن</button>
-    <p style="font-size: 11px; color: #888; margin-top: 15px;">إذا ظهر الفيديو فقط، اضغط مطولاً عليه واختر "حفظ الفيديو"</p>
-  </div>
+    <div id="result">
+        <img id="vCover" class="preview">
+        <a id="vDownload" class="dl-link" href="#" target="_blank" rel="noopener noreferrer">📥 حفظ الفيديو HD</a>
+        <p style="font-size: 11px; color: #666; margin-top: 15px;">إذا فتح الفيديو في صفحة جديدة: اضغط على (3 نقاط) ثم (Download)</p>
+    </div>
 </div>
 
 <script>
-let hdUrl = "";
+async function fetchVideo() {
+    const url = document.getElementById('vUrl').value.trim();
+    if(!url) return alert("حط الرابط أولاً!");
 
-async function start() {
-  const url = document.getElementById('linkInput').value.trim();
-  if(!url) return;
+    const btn = document.getElementById('btn');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
 
-  document.getElementById('wait').style.display = 'block';
-  document.getElementById('res').style.display = 'none';
-  document.getElementById('goBtn').disabled = true;
+    btn.style.display = 'none';
+    loading.style.display = 'block';
+    result.style.display = 'none';
 
-  try {
-    // نستخدم fetch مع تجاهل الـ CORS عبر الرابط المباشر
-    const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
-    const result = await response.json();
+    try {
+        // نستخدم API بديل وأسرع ومفتوح
+        const response = await fetch(`https://api.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
+        const data = await response.json();
 
-    if(result.code === 0) {
-      const videoData = result.data;
-      hdUrl = "https://www.tikwm.com" + (videoData.hdplay || videoData.play);
-      
-      document.getElementById('img').src = videoData.cover;
-      document.getElementById('res').style.display = 'block';
-    } else {
-      alert("الرابط غير صحيح أو الفيديو خاص");
+        if(data.code === 0) {
+            const video = data.data;
+            // الرابط المباشر بدون تعقيدات
+            const finalLink = "https://www.tikwm.com" + (video.hdplay || video.play);
+            
+            document.getElementById('vCover').src = video.cover;
+            const dlBtn = document.getElementById('vDownload');
+            
+            // هنا السر: نخلي الرابط يفتح "كتحميل"
+            dlBtn.href = finalLink;
+            
+            loading.style.display = 'none';
+            result.style.display = 'block';
+            btn.style.display = 'block';
+        } else {
+            alert("الرابط غير صحيح أو الفيديو خاص");
+            reset();
+        }
+    } catch (e) {
+        alert("السيرفر مشغول، حاول مرة ثانية");
+        reset();
     }
-  } catch (e) {
-    alert("مشكلة في الاتصال، جرب مرة أخرى");
-  } finally {
-    document.getElementById('wait').style.display = 'none';
-    document.getElementById('goBtn').disabled = false;
-  }
 }
 
-function downloadNow() {
-  if(!hdUrl) return;
-  // فتح الفيديو في نافذة جديدة مع أمر التحميل
-  const newTab = window.open(hdUrl, '_blank');
-  if(!newTab) {
-    window.location.href = hdUrl;
-  }
+function reset() {
+    document.getElementById('btn').style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
 }
 
-// لدعم المشاركة المباشرة من تيك توك
+// لدعم المشاركة المباشرة
 window.onload = () => {
-  const p = new URLSearchParams(window.location.search);
-  const s = p.get('text') || p.get('url');
-  if(s) {
-    const m = s.match(/https?:\/\/[^\s]+/);
-    if(m) {
-      document.getElementById('linkInput').value = m[0];
-      start();
+    const p = new URLSearchParams(window.location.search);
+    const s = p.get('text') || p.get('url');
+    if(s) {
+        const link = s.match(/https?:\/\/[^\s]+/);
+        if(link) {
+            document.getElementById('vUrl').value = link[0];
+            fetchVideo();
+        }
     }
-  }
 };
 </script>
 
