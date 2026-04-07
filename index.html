@@ -3,202 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#fe2c55">
-    <title>تحميل تيك توك - HD</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#ff0050">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="3TX">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>3TX | التحميل الذكي</title>
     <style>
-        :root { --main: #fe2c55; --bg: #000; --card: #161618; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: var(--bg); color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .container { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .logo { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--main); }
-        input { width: 100%; background: #222; border: 2px solid #333; border-radius: 15px; padding: 15px; color: #fff; margin-bottom: 15px; outline: none; text-align: center; }
-        input:focus { border-color: var(--main); }
-        .btn { width: 100%; background: var(--main); color: #fff; border: none; border-radius: 15px; padding: 18px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        :root { --pink: #ff0050; --bg: #0a0a0a; --card: #161616; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: var(--card); padding: 35px 25px; border-radius: 30px; width: 95%; max-width: 420px; text-align: center; border: 2px solid var(--pink); box-shadow: 0 0 20px rgba(255, 0, 80, 0.3); }
+        h1 { color: var(--pink); font-size: 60px; margin: 0; font-style: italic; font-weight: 900; text-shadow: 2px 2px #00f2ea; }
+        p { color: #888; font-size: 14px; margin-bottom: 25px; }
+        input { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #333; background: #222; color: white; margin-bottom: 15px; box-sizing: border-box; outline: none; text-align: center; font-size: 16px; }
+        .btn { background: var(--pink); color: white; padding: 16px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; width: 100%; font-size: 18px; transition: 0.3s; }
         .btn:active { transform: scale(0.95); }
-        #result { display: none; margin-top: 25px; animation: fadeIn 0.5s; }
-        .preview { width: 100%; border-radius: 20px; margin-bottom: 15px; max-height: 400px; object-fit: cover; }
-        .dl-link, .copy-link { display: block; width: 100%; background: #fff; color: #000; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: 900; font-size: 18px; margin-bottom: 10px; border: none; cursor: pointer; }
-        .copy-link { background: #333; color: #fff; font-size: 14px; }
-        .loader { display: none; color: #555; margin: 15px 0; font-size: 14px; }
-        .try-again { background: #fe2c55; margin-top: 10px; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fe2c55; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; display: none; z-index: 1000; }
-        .status-text { color: #fe2c55; font-size: 12px; margin-top: 10px; display: none; }
+        #result { display: none; margin-top: 25px; }
+        .loader { border: 4px solid #222; border-top: 4px solid var(--pink); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-msg { font-size: 12px; color: #00f2ea; margin-top: 10px; }
+        
+        /* إضافة بسيطة لرسالة المشاركة */
+        .share-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff0050;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            display: none;
+            z-index: 1000;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="logo">TT Save HD</div>
+<div class="box">
+    <h1>3TX</h1>
+    <p>تحميل تيك توك (أندرويد + أيفون)</p>
     
-    <input type="url" id="vUrl" placeholder="الصق الرابط هنا...">
-    <button class="btn" id="btn" onclick="fetchVideo()">استخراج الفيديو HD</button>
+    <input type="text" id="urlInput" placeholder="الصق الرابط هنا...">
+    <button class="btn" id="fetchBtn" onclick="getVideo()">جلب الفيديو</button>
     
-    <div class="loader" id="loading">⏳ جاري جلب الفيديو...</div>
-    <div class="status-text" id="statusText"></div>
+    <div class="loader" id="loader"></div>
 
     <div id="result">
-        <video id="vPreview" class="preview" controls controlslist="nodownload"></video>
-        <img id="vCover" class="preview" style="display: none;">
-        <button class="dl-link" id="vDownload" onclick="downloadVideo()">📥 حفظ الفيديو HD</button>
-        <button class="copy-link" id="copyLinkBtn" onclick="copyVideoLink()">📋 نسخ رابط التحميل</button>
-        <p style="font-size: 11px; color: #666; margin-top: 15px;">
-            💡 اذا ما نزل الفيديو: اضغط "نسخ الرابط" وافتحه في متصفح آخر
-        </p>
+        <button class="btn" id="dl-btn" style="background: #00f2ea; color: black;" onclick="handleDownload()">تنزيل الآن</button>
+        <div id="os-msg" class="status-msg"></div>
     </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<div id="shareToast" class="share-toast">⚡ تم استقبال الرابط من تيك توك!</div>
 
 <script>
-let currentVideoUrl = null;
-let currentVideoData = null;
+    let currentVideoUrl = "";
+    let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.style.display = 'block';
-    setTimeout(() => {
-        toast.style.display = 'none';
-    }, 2000);
-}
-
-async function fetchVideo() {
-    const url = document.getElementById('vUrl').value.trim();
-    if(!url) {
-        showToast("⚠️ حط الرابط أولاً!");
-        return;
-    }
-    
-    if(!url.includes('tiktok.com') && !url.includes('vt.tiktok') && !url.includes('vm.tiktok')) {
-        showToast("❌ هذا ليس رابط تيك توك!");
-        return;
-    }
-
-    const btn = document.getElementById('btn');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    const statusText = document.getElementById('statusText');
-
-    btn.style.display = 'none';
-    loading.style.display = 'block';
-    result.style.display = 'none';
-    statusText.style.display = 'block';
-    statusText.innerHTML = '🔄 جاري الاتصال بالسيرفر...';
-
-    try {
-        // استخدم API مختلف
-        const apiUrl = `https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`;
-        statusText.innerHTML = '🔄 جلب معلومات الفيديو...';
+    // ========== الإضافة 1: استقبال الرابط من مشاركة تيك توك ==========
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const sharedText = params.get('text') || params.get('url');
         
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        
-        if(data.code === 0 && data.data) {
-            const video = data.data;
-            currentVideoData = video;
-            
-            // جيب رابط الفيديو
-            let videoUrl = video.hdplay || video.play;
-            if(videoUrl && !videoUrl.startsWith('http')) {
-                videoUrl = 'https://tikwm.com' + videoUrl;
+        if (sharedText) {
+            const link = sharedText.match(/https?:\/\/[^\s]+/);
+            if (link && (link[0].includes('tiktok') || link[0].includes('vm.tiktok') || link[0].includes('vt.tiktok'))) {
+                document.getElementById('urlInput').value = link[0];
+                
+                // إظهار رسالة
+                const toast = document.getElementById('shareToast');
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 2000);
+                
+                // جلب الفيديو تلقائياً
+                setTimeout(() => {
+                    getVideo();
+                }, 500);
             }
-            currentVideoUrl = videoUrl;
-            
-            // اعرض المعاينة
-            const preview = document.getElementById('vPreview');
-            const cover = document.getElementById('vCover');
-            
-            if(videoUrl) {
-                preview.src = videoUrl;
-                preview.style.display = 'block';
-                cover.style.display = 'none';
+        }
+        
+        // ========== الإضافة 2: تسجيل Service Worker عشان يصير تطبيق ==========
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log('Service Worker registered');
+            }).catch(err => {
+                console.log('SW failed:', err);
+            });
+        }
+    };
+
+    // ========== كودك الأصلي ما غيرت فيه شي ==========
+    async function getVideo() {
+        const inputField = document.getElementById('urlInput');
+        const url = inputField.value;
+        if (!url) return alert("حط الرابط أولاً!");
+
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('fetchBtn').disabled = true;
+        document.getElementById('result').style.display = 'none';
+
+        try {
+            const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+            const json = await response.json();
+
+            if (json.code === 0) {
+                currentVideoUrl = json.data.play;
+                
+                // تم مسح الرابط من الخانة فوراً
+                inputField.value = ""; 
+                
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('os-msg').innerText = isIOS ? "تم التجهيز لنظام iPhone" : "تم التجهيز لنظام Android";
             } else {
-                cover.src = video.cover;
-                cover.style.display = 'block';
-                preview.style.display = 'none';
+                alert("تأكد من الرابط!");
             }
-            
-            loading.style.display = 'none';
-            result.style.display = 'block';
-            btn.style.display = 'block';
-            statusText.style.display = 'none';
-            
-            showToast("✅ جاهز! اضغط حفظ الفيديو");
+        } catch (err) {
+            alert("خطأ في الاتصال.");
+        } finally {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('fetchBtn').disabled = false;
+        }
+    }
+
+    async function handleDownload() {
+        if (!currentVideoUrl) return;
+
+        if (isIOS) {
+            // --- برمجة الأيفون (Blob) ---
+            try {
+                const res = await fetch(currentVideoUrl);
+                const blob = await res.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = "3TX_Video.mp4";
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                window.open(currentVideoUrl, '_blank');
+            }
         } else {
-            throw new Error("ما حصلنا الفيديو");
-        }
-        
-    } catch (e) {
-        console.error(e);
-        showToast("❌ السيرفر مشغول، جرب بعد دقيقة");
-        loading.style.display = 'none';
-        btn.style.display = 'block';
-        statusText.style.display = 'none';
-    }
-}
-
-function downloadVideo() {
-    if(!currentVideoUrl) {
-        showToast("❌ مافي رابط تحميل");
-        return;
-    }
-    
-    showToast("⏳ جاري تجهيز التحميل...");
-    
-    // طريقة 1: محاولة التحميل المباشر
-    const a = document.createElement('a');
-    a.href = currentVideoUrl;
-    a.download = `tiktok_${Date.now()}.mp4`;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // طريقة 2: اذا ما اشتغل، افتح في تبويب جديد بعد ثانية
-    setTimeout(() => {
-        window.open(currentVideoUrl, '_blank');
-        showToast("📱 اذا ما نزل الفيديو، اضغط نسخ الرابط");
-    }, 1000);
-}
-
-function copyVideoLink() {
-    if(!currentVideoUrl) {
-        showToast("❌ مافي رابط للنسخ");
-        return;
-    }
-    
-    navigator.clipboard.writeText(currentVideoUrl).then(() => {
-        showToast("📋 تم نسخ الرابط! افتحه في متصفح ثاني");
-    }).catch(() => {
-        showToast("❌ فشل النسخ");
-    });
-}
-
-// لصق تلقائي
-document.getElementById('vUrl').addEventListener('click', async function() {
-    try {
-        const text = await navigator.clipboard.readText();
-        if(text && (text.includes('tiktok.com') || text.includes('vm.tiktok') || text.includes('vt.tiktok'))) {
-            this.value = text;
-            showToast("✅ تم لصق الرابط");
-        }
-    } catch(e) {}
-});
-
-// مشاركة من تيك توك
-window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
-    const sharedText = params.get('text') || params.get('url');
-    if(sharedText) {
-        const match = sharedText.match(/https?:\/\/[^\s]+/);
-        if(match) {
-            document.getElementById('vUrl').value = match[0];
-            setTimeout(() => fetchVideo(), 500);
+            // --- برمجة الأندرويد (Direct Link) ---
+            const a = document.createElement('a');
+            a.href = currentVideoUrl;
+            const downloadUrl = currentVideoUrl + (currentVideoUrl.includes('?') ? '&' : '?') + 'download=1';
+            a.href = downloadUrl;
+            a.setAttribute('download', '3TX_Video.mp4');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     }
-};
 </script>
 
 </body>
