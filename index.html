@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
     <title>3TX | التحميل الذكي</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         :root { --pink: #ff0050; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -41,21 +41,21 @@
     let currentVideoUrl = "";
     let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // --- إضافة ميزة المشاركة المباشرة وتثبيت التطبيق ---
-    window.onload = () => {
-        const params = new URLSearchParams(window.location.search);
-        const sharedText = params.get('text') || params.get('url');
-        if (sharedText) {
-            const link = sharedText.match(/https?:\/\/[^\s]+/);
-            if (link) {
-                document.getElementById('urlInput').value = link[0];
-                getVideo();
+    // --- ميزة استلام الرابط من قائمة المشاركة ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const parsedUrl = new URL(window.location);
+        // تيك توك يرسل الرابط كـ text أو url
+        const sharedUrl = parsedUrl.searchParams.get('text') || parsedUrl.searchParams.get('url');
+        
+        if (sharedUrl) {
+            // استخراج الرابط إذا كان مع نص (تيك توك يضيف وصف للفيديو أحياناً)
+            const urlMatch = sharedUrl.match(/\bhttps?:\/\/\S+/gi);
+            if (urlMatch) {
+                document.getElementById('urlInput').value = urlMatch[0];
+                getVideo(); // تشغيل الجلب تلقائياً
             }
         }
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    };
+    });
 
     async function getVideo() {
         const inputField = document.getElementById('urlInput');
@@ -67,16 +67,12 @@
         document.getElementById('result').style.display = 'none';
 
         try {
-            // إضافة &hd=1 لجلب أعلى دقة تلقائياً
-            const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
+            const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
             const json = await response.json();
 
             if (json.code === 0) {
-                // الأولوية لرابط الـ HD إذا كان متوفراً
-                currentVideoUrl = "https://www.tikwm.com" + (json.data.hdplay || json.data.play);
-                
+                currentVideoUrl = json.data.play;
                 inputField.value = ""; 
-                
                 document.getElementById('result').style.display = 'block';
                 document.getElementById('os-msg').innerText = isIOS ? "تم التجهيز لنظام iPhone" : "تم التجهيز لنظام Android";
             } else {
@@ -92,7 +88,6 @@
 
     async function handleDownload() {
         if (!currentVideoUrl) return;
-
         if (isIOS) {
             try {
                 const res = await fetch(currentVideoUrl);
