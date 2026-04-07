@@ -1,12 +1,12 @@
 {
   "name": "3TX | التحميل الذكي",
   "short_name": "3TX",
-  "start_url": "./",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#ff0050",
   "share_target": {
-    "action": "./",
+    "action": "index.html",
     "method": "GET",
     "params": {
       "text": "text",
@@ -17,8 +17,7 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
