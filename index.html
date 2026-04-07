@@ -10,6 +10,18 @@
 <link rel="manifest" href="manifest.json">
 <title>TT Save</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<script>
+  // كود تسجيل التطبيق في المتصفح ليظهر زر "تثبيت"
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('S-Worker Registered'))
+        .catch(err => console.log('S-Worker Failed', err));
+    });
+  }
+</script>
+
 <style>
   :root {
     --bg: #0a0a0f;
@@ -267,7 +279,6 @@
     <p class="tagline">شارك من تيك توك مباشرة للتطبيق ⚡</p>
   </header>
 
-  <!-- Android install -->
   <div id="install-banner">
     <div class="ib-icon">📲</div>
     <div class="ib-text">
@@ -277,50 +288,33 @@
     <button class="ib-btn" onclick="installApp()">تثبيت</button>
   </div>
 
-  <!-- iOS guide -->
   <div id="ios-guide">
     <div class="ios-title">📲 ثبّت التطبيق على iPhone</div>
-    <div class="ios-step"><div class="ios-n">1</div><span>اضغط زر <strong>المشاركة</strong> في الأسفل في Safari</span></div>
+    <div class="ios-step"><div class="ios-n">1</div><span>اضغط زر <strong>المشاركة</strong> في Safari</span></div>
     <div class="ios-step"><div class="ios-n">2</div><span>اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong></span></div>
-    <div class="ios-step"><div class="ios-n">3</div><span>اضغط <strong>إضافة</strong> — التطبيق يظهر على شاشتك</span></div>
     <div class="ios-step"><div class="ios-n">✓</div><span>من تيك توك: مشاركة ← اختر <strong>TT Save</strong> مباشرة</span></div>
   </div>
 
-  <!-- Shared toast -->
-  <div id="shared-toast">
-    <div class="st-icon">⚡</div>
-    <div class="st-text">
-      <strong>رابط وصل من تيك توك!</strong>
-      <span>جاري جلب الفيديو تلقائياً...</span>
-    </div>
-  </div>
-
-  <!-- Input -->
   <div class="input-card">
     <div class="input-label">🔗 أو الصق الرابط يدوياً</div>
     <div class="input-wrap">
-      <input type="url" id="urlInput" class="url-input"
-        placeholder="https://www.tiktok.com/@user/video/..."
-        autocomplete="off" autocorrect="off" spellcheck="false">
+      <input type="url" id="urlInput" class="url-input" placeholder="رابط فيديو تيك توك...">
       <button class="paste-btn" onclick="pasteURL()">📋 لصق</button>
     </div>
     <button class="fetch-btn" id="fetchBtn" onclick="fetchVideo()">🔍 معاينة الفيديو</button>
   </div>
 
-  <!-- Loading -->
   <div class="loading" id="loading">
     <div class="loader"></div>
     <p>جاري جلب الفيديو...</p>
   </div>
 
-  <!-- Error -->
   <div class="error-card" id="errorCard">
     <div class="e-icon">😕</div>
     <div class="e-title">تعذّر جلب الفيديو</div>
-    <div class="e-msg" id="errorMsg">تأكد من صحة الرابط وأن الفيديو عام</div>
+    <div class="e-msg" id="errorMsg">تأكد من صحة الرابط</div>
   </div>
 
-  <!-- Result -->
   <div class="result-card" id="resultCard">
     <div class="video-preview">
       <img class="video-thumb" id="thumb" src="" alt="" onclick="toggleVideo()">
@@ -348,17 +342,8 @@
           <div class="dl-label">تحميل بدون علامة مائية</div>
           <div class="dl-sub">جودة عالية HD • MP4</div>
         </div>
-        <div class="dl-arrow">↓</div>
       </button>
     </div>
-  </div>
-
-  <!-- Tips -->
-  <div class="tips">
-    <div class="tips-title">⚡ بعد التثبيت — طريقة الاستخدام</div>
-    <div class="tip"><div class="tip-num">1</div><span>افتح الفيديو في تيك توك ← اضغط <strong>مشاركة</strong></span></div>
-    <div class="tip"><div class="tip-num">2</div><span>من قائمة المشاركة اختر <strong>TT Save</strong></span></div>
-    <div class="tip"><div class="tip-num">3</div><span>التطبيق يفتح والفيديو يجلب تلقائياً، شاهده ثم حمّله 🎉</span></div>
   </div>
 
 </div>
@@ -366,16 +351,12 @@
 <script>
 let vData = null, playing = false, deferredPrompt = null;
 
-// ── Install ──────────────────────────────────────────────────────────────────
+// Install Logic
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
+  e.preventDefault(); deferredPrompt = e;
   document.getElementById('install-banner').classList.add('show');
 });
-window.addEventListener('appinstalled', () => {
-  document.getElementById('install-banner').classList.remove('show');
-  deferredPrompt = null;
-});
+
 async function installApp() {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
@@ -386,108 +367,48 @@ async function installApp() {
   }
 }
 
-// iOS detection
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if (isIOS && !isStandalone) {
-  setTimeout(() => { if (!deferredPrompt) document.getElementById('ios-guide').classList.add('show'); }, 600);
-}
-
-// ── Service Worker ───────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
-
-// ── Share Target — استقبال الرابط من تيك توك ────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  const p = new URLSearchParams(window.location.search);
-  const shared = p.get('text') || p.get('url') || '';
-  if (!shared) return;
-  const m = shared.match(/https?:\/\/[^\s]+/);
-  const url = m ? m[0] : shared;
-  if (!url.includes('tiktok') && !url.includes('vm.tiktok') && !url.includes('vt.tiktok')) return;
-  document.getElementById('urlInput').value = url;
-  document.getElementById('shared-toast').classList.add('show');
-  window.history.replaceState({}, '', '/');
-  setTimeout(() => {
-    document.getElementById('shared-toast').classList.remove('show');
-    fetchVideo();
-  }, 1000);
-});
-
-// ── Clipboard ────────────────────────────────────────────────────────────────
 async function pasteURL() {
   try { const t = await navigator.clipboard.readText(); if (t) document.getElementById('urlInput').value = t; }
   catch { document.getElementById('urlInput').focus(); }
 }
-document.getElementById('urlInput').addEventListener('focus', async () => {
-  if (document.getElementById('urlInput').value) return;
-  try { const t = await navigator.clipboard.readText(); if (t && t.includes('tiktok')) document.getElementById('urlInput').value = t; } catch {}
-});
-document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') fetchVideo(); });
 
-// ── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchVideo() {
   const url = document.getElementById('urlInput').value.trim();
-  if (!url) { showErr('الرجاء إدخال رابط الفيديو'); return; }
-  if (!url.includes('tiktok')) { showErr('يجب أن يكون رابط تيك توك'); return; }
-  reset(); setLoading(true);
+  if (!url) return;
+  setLoading(true); reset();
   try {
     const r = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
     const j = await r.json();
-    if (j.code !== 0 || !j.data) throw new Error(j.msg || 'فشل');
+    if (j.code !== 0) throw new Error();
     vData = j.data; setLoading(false); render(vData);
-  } catch(e) { setLoading(false); showErr(e.message || 'حدث خطأ، حاول مجدداً'); }
+  } catch(e) { setLoading(false); showErr('فشل الجلب'); }
 }
 
-function fmtDur(s) { s=parseInt(s)||0; return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60; }
-
 function render(d) {
-  document.getElementById('thumb').src = d.cover || '';
-  document.getElementById('thumb').style.display = 'block';
-  document.getElementById('player').style.display = 'none';
-  document.getElementById('overlay').style.display = 'flex';
-  document.getElementById('dur').textContent = fmtDur(d.duration);
-  const a = d.author || {};
-  document.getElementById('avatar').src = a.avatar || '';
-  document.getElementById('authorName').textContent = a.nickname || '—';
-  document.getElementById('authorHandle').textContent = '@'+(a.unique_id||'—');
-  document.getElementById('videoTitle').textContent = d.title || 'بدون وصف';
+  document.getElementById('thumb').src = d.cover;
+  document.getElementById('avatar').src = d.author.avatar;
+  document.getElementById('authorName').textContent = d.author.nickname;
+  document.getElementById('videoTitle').textContent = d.title;
   document.getElementById('resultCard').classList.add('show');
-  setTimeout(() => document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'}), 100);
 }
 
 function toggleVideo() {
-  if (!vData) return;
-  const thumb=document.getElementById('thumb'), player=document.getElementById('player'), overlay=document.getElementById('overlay');
+  const player=document.getElementById('player'), thumb=document.getElementById('thumb'), overlay=document.getElementById('overlay');
   if (!playing) {
-    const src = vData.play || vData.hdplay || ''; if (!src) return;
-    player.src=src; player.style.display='block'; thumb.style.display='none'; overlay.style.display='none';
-    player.play().catch(()=>{}); playing=true;
+    player.src = vData.play; player.style.display='block'; thumb.style.display='none'; overlay.style.display='none';
+    player.play(); playing=true;
   } else {
-    player.pause(); player.src=''; player.style.display='none';
-    thumb.style.display='block'; overlay.style.display='flex'; playing=false;
+    player.pause(); player.style.display='none'; thumb.style.display='block'; overlay.style.display='flex'; playing=false;
   }
 }
 
 function doDownload() {
-  if (!vData) return;
-  const url = vData.hdplay || vData.play || ''; if (!url) { alert('رابط التحميل غير متاح'); return; }
-  const a = document.createElement('a'); a.href=url; a.download=`ttsave_${vData.id||'video'}.mp4`;
-  a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  window.open(vData.hdplay || vData.play, '_blank');
 }
 
-function setLoading(s) {
-  document.getElementById('loading').classList.toggle('show',s);
-  document.getElementById('fetchBtn').disabled=s;
-  document.getElementById('fetchBtn').textContent=s?'جاري الجلب...':'🔍 معاينة الفيديو';
-}
-function showErr(msg) { document.getElementById('errorMsg').textContent=msg; document.getElementById('errorCard').classList.add('show'); }
-function reset() {
-  document.getElementById('errorCard').classList.remove('show');
-  document.getElementById('resultCard').classList.remove('show');
-  const p=document.getElementById('player'); p.pause(); p.src=''; playing=false; vData=null;
-}
+function setLoading(s) { document.getElementById('loading').classList.toggle('show',s); }
+function showErr(m) { document.getElementById('errorMsg').textContent=m; document.getElementById('errorCard').classList.add('show'); }
+function reset() { document.getElementById('errorCard').classList.remove('show'); document.getElementById('resultCard').classList.remove('show'); }
 </script>
 </body>
 </html>
