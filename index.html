@@ -2,123 +2,101 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#fe2c55">
-<link rel="manifest" href="manifest.json">
-<title>TT Save - HD PRO</title>
+<title>TT Save - HD</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-  :root { --bg: #000; --surface: #111; --red: #fe2c55; --cyan: #25f4ee; }
+  :root { --red: #fe2c55; --cyan: #25f4ee; --bg: #000; }
   * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
   body { background: var(--bg); color: #fff; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 15px; }
-  .app-card { width: 100%; max-width: 400px; background: var(--surface); border-radius: 30px; padding: 25px; border: 1px solid #222; text-align: center; }
-  
-  .logo { font-size: 35px; font-weight: 900; margin-bottom: 5px; }
+  .card { width: 100%; max-width: 400px; background: #111; border-radius: 25px; padding: 25px; border: 1px solid #222; text-align: center; }
+  .logo { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
   .logo span:first-child { color: var(--red); }
   .logo span:last-child { color: var(--cyan); }
   
-  .input-box { position: relative; margin: 25px 0; }
-  input { width: 100%; background: #222; border: 1.5px solid #333; border-radius: 15px; padding: 15px; color: #fff; outline: none; text-align: center; font-size: 14px; }
-  input:focus { border-color: var(--red); }
+  input { width: 100%; background: #222; border: 1px solid #333; border-radius: 12px; padding: 15px; color: #fff; outline: none; margin-bottom: 15px; text-align: center; }
   
-  .btn-get { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 15px; padding: 16px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+  .btn { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 12px; padding: 16px; font-weight: 700; font-size: 16px; cursor: pointer; }
   
-  #result-area { display: none; margin-top: 25px; animation: slideUp 0.4s ease; }
-  .thumb { width: 100%; border-radius: 20px; border: 2px solid #333; margin-bottom: 20px; }
+  #res { display: none; margin-top: 20px; animation: fadeIn 0.4s; }
+  .preview { width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; }
   
-  /* زر التحميل العملاق المعدل */
-  .btn-download {
-    width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 15px; padding: 18px;
-    font-weight: 900; font-size: 18px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
-  }
+  .dl-hd { width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 12px; padding: 18px; font-weight: 900; font-size: 17px; cursor: pointer; display: block; text-decoration: none; }
   
-  .loading { display: none; margin: 20px 0; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .loader { display: none; margin: 15px 0; color: var(--cyan); font-size: 14px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<div class="app-card">
+<div class="card">
   <div class="logo"><span>TT</span><span>Save</span></div>
-  <p style="font-size: 12px; color: #888;">تحميل فيديو HD بدون علامة مائية</p>
-
-  <div class="input-box">
-    <input type="url" id="vUrl" placeholder="الصق رابط تيك توك هنا...">
-  </div>
   
-  <button class="btn-get" id="mainBtn" onclick="processVideo()">استخراج الفيديو HD</button>
+  <input type="url" id="linkInput" placeholder="ضع رابط الفيديو هنا...">
+  <button class="btn" id="goBtn" onclick="start()">استخراج الفيديو HD</button>
 
-  <div class="loading" id="loader">
-    <p style="color:var(--cyan)">⏳ جاري الاتصال بالسيرفر...</p>
-  </div>
+  <div class="loader" id="wait">⏳ جاري جلب الجودة العالية...</div>
 
-  <div id="result-area">
-    <img id="vCover" class="thumb">
-    <a id="finalDlLink" class="btn-download" href="#" download="video.mp4">
-       📥 تحميل الفيديو للأستوديو
-    </a>
-    <p style="margin-top: 15px; font-size: 11px; color: #666;">إذا فتح الفيديو بصفحة سودة، اضغط مطولاً عليه واختر "حفظ الفيديو"</p>
+  <div id="res">
+    <img id="img" class="preview">
+    <button class="dl-hd" onclick="downloadNow()">📥 تحميل الفيديو HD الآن</button>
+    <p style="font-size: 11px; color: #888; margin-top: 15px;">إذا ظهر الفيديو فقط، اضغط مطولاً عليه واختر "حفظ الفيديو"</p>
   </div>
 </div>
 
 <script>
-async function processVideo() {
-  const url = document.getElementById('vUrl').value.trim();
+let hdUrl = "";
+
+async function start() {
+  const url = document.getElementById('linkInput').value.trim();
   if(!url) return;
 
-  const btn = document.getElementById('mainBtn');
-  const loader = document.getElementById('loader');
-  const result = document.getElementById('result-area');
-
-  btn.style.display = 'none';
-  loader.style.display = 'block';
-  result.style.display = 'none';
+  document.getElementById('wait').style.display = 'block';
+  document.getElementById('res').style.display = 'none';
+  document.getElementById('goBtn').disabled = true;
 
   try {
-    const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
-    const data = await res.json();
+    // نستخدم fetch مع تجاهل الـ CORS عبر الرابط المباشر
+    const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
+    const result = await response.json();
 
-    if(data.code === 0) {
-      const v = data.data;
-      const videoLink = v.hdplay || v.play;
+    if(result.code === 0) {
+      const videoData = result.data;
+      hdUrl = "https://www.tikwm.com" + (videoData.hdplay || videoData.play);
       
-      document.getElementById('vCover').src = v.cover;
-      
-      // السر هنا: نستخدم رابط يحول الفيديو إلى ملف تحميل فوراً
-      // هذا السيرفر الوسيط يجبر المتصفح على تحميل الملف بدلاً من تشغيله
-      const forcedDownloadUrl = `https://www.tikwm.com${v.hdplay || v.play}`;
-      
-      const dlBtn = document.getElementById('finalDlLink');
-      dlBtn.href = forcedDownloadUrl;
-      
-      loader.style.display = 'none';
-      result.style.display = 'block';
-      btn.style.display = 'block';
+      document.getElementById('img').src = videoData.cover;
+      document.getElementById('res').style.display = 'block';
     } else {
-      alert("الرابط خطأ أو الفيديو خاص");
-      resetUI();
+      alert("الرابط غير صحيح أو الفيديو خاص");
     }
   } catch (e) {
-    alert("خلل بالسيرفر، جرب مرة ثانية");
-    resetUI();
+    alert("مشكلة في الاتصال، جرب مرة أخرى");
+  } finally {
+    document.getElementById('wait').style.display = 'none';
+    document.getElementById('goBtn').disabled = false;
   }
 }
 
-function resetUI() {
-  document.getElementById('mainBtn').style.display = 'block';
-  document.getElementById('loader').style.display = 'none';
+function downloadNow() {
+  if(!hdUrl) return;
+  // فتح الفيديو في نافذة جديدة مع أمر التحميل
+  const newTab = window.open(hdUrl, '_blank');
+  if(!newTab) {
+    window.location.href = hdUrl;
+  }
 }
 
-// دعم المشاركة المباشرة
+// لدعم المشاركة المباشرة من تيك توك
 window.onload = () => {
-  const params = new URLSearchParams(window.location.search);
-  const shared = params.get('text') || params.get('url');
-  if(shared) {
-    const link = shared.match(/https?:\/\/[^\s]+/);
-    if(link) {
-      document.getElementById('vUrl').value = link[0];
-      processVideo();
+  const p = new URLSearchParams(window.location.search);
+  const s = p.get('text') || p.get('url');
+  if(s) {
+    const m = s.match(/https?:\/\/[^\s]+/);
+    if(m) {
+      document.getElementById('linkInput').value = m[0];
+      start();
     }
   }
 };
