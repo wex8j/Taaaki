@@ -4,132 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#fe2c55">
-    <title>TT Save - Ultra HD</title>
+    <title>تحميل تيك توك - HD</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --red: #fe2c55; --cyan: #25f4ee; --card: #121214; }
+        :root { --main: #fe2c55; --bg: #000; --card: #161618; }
         * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: #000; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .app { width: 100%; max-width: 400px; background: var(--card); border-radius: 32px; padding: 30px; border: 1px solid #222; text-align: center; }
-        .logo { font-size: 30px; font-weight: 900; margin-bottom: 25px; background: linear-gradient(to right, var(--red), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        input { width: 100%; background: #1c1c1e; border: 1.5px solid #333; border-radius: 16px; padding: 16px; color: #fff; outline: none; margin-bottom: 15px; text-align: center; }
-        input:focus { border-color: var(--red); }
-        .btn { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 16px; padding: 18px; font-weight: 700; font-size: 16px; cursor: pointer; }
-        #result { display: none; margin-top: 25px; animation: scaleUp 0.4s ease; }
-        .preview { width: 100%; border-radius: 20px; border: 2px solid #333; margin-bottom: 15px; }
-        .dl-btn { width: 100%; background: #fff; color: #000; text-decoration: none; padding: 18px; border-radius: 16px; font-weight: 900; font-size: 17px; display: block; }
-        .status { display: none; margin: 15px 0; color: var(--cyan); font-size: 13px; }
-        @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        body { background: var(--bg); color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .logo { font-size: 32px; font-weight: 900; margin-bottom: 20px; color: var(--main); }
+        input { width: 100%; background: #222; border: 2px solid #333; border-radius: 15px; padding: 15px; color: #fff; margin-bottom: 15px; outline: none; text-align: center; }
+        input:focus { border-color: var(--main); }
+        .btn { width: 100%; background: var(--main); color: #fff; border: none; border-radius: 15px; padding: 18px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
+        #result { display: none; margin-top: 25px; animation: fadeIn 0.5s; }
+        .preview { width: 100%; border-radius: 20px; margin-bottom: 15px; max-height: 400px; object-fit: cover; }
+        .dl-link, .copy-link { display: block; width: 100%; background: #fff; color: #000; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: 900; font-size: 18px; margin-bottom: 10px; border: none; cursor: pointer; }
+        .copy-link { background: #333; color: #fff; font-size: 14px; }
+        .loader { display: none; color: #555; margin: 15px 0; font-size: 14px; }
+        .try-again { background: #fe2c55; margin-top: 10px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fe2c55; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; display: none; z-index: 1000; }
+        .status-text { color: #fe2c55; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="app">
-    <div class="logo">TT SAVE PRO</div>
-    <input type="url" id="link" placeholder="الصق الرابط هنا...">
-    <button class="btn" id="go" onclick="downloadLogic()">استخراج الفيديو HD</button>
+<div class="container">
+    <div class="logo">TT Save HD</div>
     
-    <div class="status" id="state">⏳ جاري المحاولة (سيرفر 1)...</div>
+    <input type="url" id="vUrl" placeholder="الصق الرابط هنا...">
+    <button class="btn" id="btn" onclick="fetchVideo()">استخراج الفيديو HD</button>
+    
+    <div class="loader" id="loading">⏳ جاري جلب الفيديو...</div>
+    <div class="status-text" id="statusText"></div>
 
     <div id="result">
-        <img id="cover" class="preview">
-        <a id="download" class="dl-btn" href="#">📥 حفظ الفيديو في الاستوديو</a>
-        <p style="font-size: 10px; color: #666; margin-top: 15px;">في حال فتح الفيديو بصفحة سودة، اضغط مطولاً واختَر "حفظ الفيديو"</p>
+        <video id="vPreview" class="preview" controls controlslist="nodownload"></video>
+        <img id="vCover" class="preview" style="display: none;">
+        <button class="dl-link" id="vDownload" onclick="downloadVideo()">📥 حفظ الفيديو HD</button>
+        <button class="copy-link" id="copyLinkBtn" onclick="copyVideoLink()">📋 نسخ رابط التحميل</button>
+        <p style="font-size: 11px; color: #666; margin-top: 15px;">
+            💡 اذا ما نزل الفيديو: اضغط "نسخ الرابط" وافتحه في متصفح آخر
+        </p>
     </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
-let videoUrl = "";
+let currentVideoUrl = null;
+let currentVideoData = null;
 
-async function downloadLogic() {
-    const input = document.getElementById('link').value.trim();
-    if(!input) return;
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 2000);
+}
 
-    const state = document.getElementById('state');
+async function fetchVideo() {
+    const url = document.getElementById('vUrl').value.trim();
+    if(!url) {
+        showToast("⚠️ حط الرابط أولاً!");
+        return;
+    }
+    
+    if(!url.includes('tiktok.com') && !url.includes('vt.tiktok') && !url.includes('vm.tiktok')) {
+        showToast("❌ هذا ليس رابط تيك توك!");
+        return;
+    }
+
+    const btn = document.getElementById('btn');
+    const loading = document.getElementById('loading');
     const result = document.getElementById('result');
-    const go = document.getElementById('go');
+    const statusText = document.getElementById('statusText');
 
-    go.disabled = true;
-    state.style.display = 'block';
+    btn.style.display = 'none';
+    loading.style.display = 'block';
     result.style.display = 'none';
+    statusText.style.display = 'block';
+    statusText.innerHTML = '🔄 جاري الاتصال بالسيرفر...';
 
-    // محاولة 1: السيرفر الأساسي
     try {
-        state.innerText = "⏳ جاري الاتصال بالسيرفر الأساسي...";
-        const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(input)}&hd=1`);
-        const data = await res.json();
+        // استخدم API مختلف
+        const apiUrl = `https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`;
+        statusText.innerHTML = '🔄 جلب معلومات الفيديو...';
         
-        if(data.code === 0) {
-            showResult(data.data);
-            return;
-        }
-        throw new Error("S1 Busy");
-    } catch (e) {
-        // محاولة 2: إذا السيرفر الأول مشغول، نجرب السيرفر الاحتياطي
-        try {
-            state.innerText = "⚠️ السيرفر الأول مشغول، جاري تجربة سيرفر 2...";
-            const res2 = await fetch(`https://api.tikwm.com/api/?url=${encodeURIComponent(input)}`);
-            const data2 = await res2.json();
-            if(data2.code === 0) {
-                showResult(data2.data);
-                return;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if(data.code === 0 && data.data) {
+            const video = data.data;
+            currentVideoData = video;
+            
+            // جيب رابط الفيديو
+            let videoUrl = video.hdplay || video.play;
+            if(videoUrl && !videoUrl.startsWith('http')) {
+                videoUrl = 'https://tikwm.com' + videoUrl;
             }
-        } catch (e2) {
-            alert("للأسف كل السيرفرات مشغولة حالياً، جرب بعد دقيقة وحدة.");
+            currentVideoUrl = videoUrl;
+            
+            // اعرض المعاينة
+            const preview = document.getElementById('vPreview');
+            const cover = document.getElementById('vCover');
+            
+            if(videoUrl) {
+                preview.src = videoUrl;
+                preview.style.display = 'block';
+                cover.style.display = 'none';
+            } else {
+                cover.src = video.cover;
+                cover.style.display = 'block';
+                preview.style.display = 'none';
+            }
+            
+            loading.style.display = 'none';
+            result.style.display = 'block';
+            btn.style.display = 'block';
+            statusText.style.display = 'none';
+            
+            showToast("✅ جاهز! اضغط حفظ الفيديو");
+        } else {
+            throw new Error("ما حصلنا الفيديو");
         }
-    } finally {
-        go.disabled = false;
-        state.style.display = 'none';
-    }
-}
-
-function showResult(data) {
-    videoUrl = "https://www.tikwm.com" + (data.hdplay || data.play);
-    document.getElementById('cover').src = data.cover;
-    const dlLink = document.getElementById('download');
-    
-    // السر هنا للآيفون والأندرويد: نفتح الرابط بطريقة التحميل
-    dlLink.onclick = (e) => {
-        e.preventDefault();
-        forceSave(videoUrl);
-    };
-    
-    document.getElementById('result').style.display = 'block';
-}
-
-// وظيفة إجبار الحفظ لمنع "تحميل الصوت فقط"
-async function forceSave(url) {
-    const state = document.getElementById('state');
-    state.style.display = 'block';
-    state.innerText = "🚀 جاري تحويل الفيديو للجهاز...";
-    
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `TT-Video-${Date.now()}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(blobUrl);
-        state.innerText = "✅ اكتمل التحميل!";
+        
     } catch (e) {
-        // إذا فشل الـ Blob (بسبب الحماية)، نفتح الرابط مباشرة
-        window.location.href = url;
+        console.error(e);
+        showToast("❌ السيرفر مشغول، جرب بعد دقيقة");
+        loading.style.display = 'none';
+        btn.style.display = 'block';
+        statusText.style.display = 'none';
     }
 }
 
-// دعم المشاركة المباشرة
+function downloadVideo() {
+    if(!currentVideoUrl) {
+        showToast("❌ مافي رابط تحميل");
+        return;
+    }
+    
+    showToast("⏳ جاري تجهيز التحميل...");
+    
+    // طريقة 1: محاولة التحميل المباشر
+    const a = document.createElement('a');
+    a.href = currentVideoUrl;
+    a.download = `tiktok_${Date.now()}.mp4`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // طريقة 2: اذا ما اشتغل، افتح في تبويب جديد بعد ثانية
+    setTimeout(() => {
+        window.open(currentVideoUrl, '_blank');
+        showToast("📱 اذا ما نزل الفيديو، اضغط نسخ الرابط");
+    }, 1000);
+}
+
+function copyVideoLink() {
+    if(!currentVideoUrl) {
+        showToast("❌ مافي رابط للنسخ");
+        return;
+    }
+    
+    navigator.clipboard.writeText(currentVideoUrl).then(() => {
+        showToast("📋 تم نسخ الرابط! افتحه في متصفح ثاني");
+    }).catch(() => {
+        showToast("❌ فشل النسخ");
+    });
+}
+
+// لصق تلقائي
+document.getElementById('vUrl').addEventListener('click', async function() {
+    try {
+        const text = await navigator.clipboard.readText();
+        if(text && (text.includes('tiktok.com') || text.includes('vm.tiktok') || text.includes('vt.tiktok'))) {
+            this.value = text;
+            showToast("✅ تم لصق الرابط");
+        }
+    } catch(e) {}
+});
+
+// مشاركة من تيك توك
 window.onload = () => {
-    const p = new URLSearchParams(window.location.search);
-    const s = p.get('text') || p.get('url');
-    if(s) {
-        const m = s.match(/https?:\/\/[^\s]+/);
-        if(m) {
-            document.getElementById('link').value = m[0];
-            downloadLogic();
+    const params = new URLSearchParams(window.location.search);
+    const sharedText = params.get('text') || params.get('url');
+    if(sharedText) {
+        const match = sharedText.match(/https?:\/\/[^\s]+/);
+        if(match) {
+            document.getElementById('vUrl').value = match[0];
+            setTimeout(() => fetchVideo(), 500);
         }
     }
 };
