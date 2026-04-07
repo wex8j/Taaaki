@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TT Save">
+<meta name="description" content="حمّل فيديوهات تيك توك بدون علامة مائية">
+<title>TT Save — تحميل تيك توك</title>
+
+<!-- Inline PWA Manifest -->
+<script>
+const manifest = {
+  name: "TT Save — تحميل تيك توك",
+  short_name: "TT Save",
+  description: "حمّل فيديوهات تيك توك بسهولة",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#0a0a0f",
+  theme_color: "#0a0a0f",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230a0a0f'/%3E%3Ctext y='140' x='96' text-anchor='middle' font-size='120' font-family='Arial'%3E🎵%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230a0a0f'/%3E%3Ctext y='370' x='256' text-anchor='middle' font-size='320' font-family='Arial'%3E🎵%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: rgba(255,255,255,0.07);
+    --red: #ff2d55;
+    --cyan: #00f2ea;
+    --glow-r: rgba(255,45,85,0.4);
+    --glow-c: rgba(0,242,234,0.4);
+    --text: #f0f0f5;
+    --muted: rgba(240,240,245,0.45);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,45,85,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 80% 90%, rgba(0,242,234,0.10) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 32px 0 28px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ff2d55, #ff6b35, #00f2ea);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 0 30px rgba(255,45,85,0.4), 0 0 60px rgba(0,242,234,0.2);
+    animation: pulse-logo 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-logo {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,45,85,0.4), 0 0 60px rgba(0,242,234,0.2); }
+    50% { box-shadow: 0 0 50px rgba(255,45,85,0.6), 0 0 80px rgba(0,242,234,0.3); }
+  }
+
+  .logo-text {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span:first-child { color: var(--red); }
+  .logo-text span:last-child { color: var(--cyan); }
+
+  .tagline {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.3px;
+  }
+
+  /* Install banner */
+  #install-banner {
+    display: none;
+    background: linear-gradient(135deg, rgba(255,45,85,0.15), rgba(0,242,234,0.10));
+    border: 1px solid rgba(255,45,85,0.3);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #install-banner.show { display: flex; }
+  #install-banner:active { transform: scale(0.98); }
+
+  .install-icon { font-size: 28px; flex-shrink: 0; }
+
+  .install-text { flex: 1; }
+  .install-text strong { display: block; font-size: 14px; font-weight: 700; color: var(--text); }
+  .install-text span { font-size: 12px; color: var(--muted); }
+
+  .install-btn {
+    background: linear-gradient(135deg, var(--red), var(--cyan));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Input card */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+  }
+
+  .input-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    gap: 10px;
+  }
+
+  .url-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    direction: ltr;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .url-input:focus {
+    border-color: rgba(255,45,85,0.5);
+    box-shadow: 0 0 0 3px rgba(255,45,85,0.1);
+  }
+
+  .url-input::placeholder { color: rgba(240,240,245,0.25); }
+
+  .paste-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 0 16px;
+    color: var(--cyan);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .paste-btn:active { transform: scale(0.95); background: rgba(0,242,234,0.1); }
+
+  .fetch-btn {
+    width: 100%;
+    margin-top: 14px;
+    background: linear-gradient(135deg, var(--red) 0%, #ff6b35 50%, var(--cyan) 100%);
+    background-size: 200% 100%;
+    background-position: 0% 0%;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    color: white;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.3px;
+  }
+
+  .fetch-btn:not(:disabled):active {
+    transform: scale(0.98);
+    background-position: 100% 0%;
+  }
+
+  .fetch-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .fetch-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .fetch-btn:not(:disabled):hover::before { opacity: 1; }
+
+  /* Loading */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    margin-bottom: 20px;
+  }
+
+  .loading.show { display: block; }
+
+  .loader {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid var(--surface2);
+    border-top-color: var(--red);
+    border-right-color: var(--cyan);
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Result card */
+  .result-card {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .result-card.show { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Video preview */
+  .video-preview {
+    position: relative;
+    background: #000;
+    cursor: pointer;
+  }
+
+  .video-thumb {
+    width: 100%;
+    aspect-ratio: 9/16;
+    object-fit: cover;
+    display: block;
+    max-height: 400px;
+  }
+
+  .video-player {
+    width: 100%;
+    aspect-ratio: 9/16;
+    display: none;
+    background: #000;
+    max-height: 400px;
+  }
+
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    transition: opacity 0.2s;
+  }
+
+  .play-btn-big {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s;
+  }
+
+  .play-overlay:hover .play-btn-big { transform: scale(1.1); }
+
+  .duration-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    direction: ltr;
+  }
+
+  .hd-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, var(--red), var(--cyan));
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* Meta info */
+  .video-meta {
+    padding: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .author-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .author-info { flex: 1; min-width: 0; }
+  .author-name { font-size: 15px; font-weight: 700; }
+  .author-handle { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  .video-title {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Stats */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .stat span:first-child { font-size: 16px; }
+  .stat strong { color: var(--text); font-weight: 600; }
+
+  /* Download options */
+  .dl-section {
+    padding: 18px;
+  }
+
+  .dl-title {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dl-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dl-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1.5px solid;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: transparent;
+    font-family: 'Tajawal', sans-serif;
+    width: 100%;
+    text-align: right;
+  }
+
+  .dl-btn:active { transform: scale(0.98); }
+
+  .dl-btn.primary {
+    border-color: var(--red);
+    background: rgba(255,45,85,0.08);
+  }
+  .dl-btn.primary:hover { background: rgba(255,45,85,0.15); }
+
+  .dl-btn.secondary {
+    border-color: var(--border);
+    background: var(--surface2);
+  }
+  .dl-btn.secondary:hover { background: rgba(255,255,255,0.05); }
+
+  .dl-btn.audio-btn {
+    border-color: rgba(0,242,234,0.4);
+    background: rgba(0,242,234,0.05);
+  }
+  .dl-btn.audio-btn:hover { background: rgba(0,242,234,0.1); }
+
+  .dl-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .dl-btn.primary .dl-btn-icon { background: rgba(255,45,85,0.2); }
+  .dl-btn.secondary .dl-btn-icon { background: var(--surface); }
+  .dl-btn.audio-btn .dl-btn-icon { background: rgba(0,242,234,0.1); }
+
+  .dl-btn-info { flex: 1; }
+  .dl-btn-label { font-size: 14px; font-weight: 700; color: var(--text); }
+  .dl-btn-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .dl-btn-arrow {
+    font-size: 18px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* Error */
+  .error-card {
+    display: none;
+    background: rgba(255,45,85,0.08);
+    border: 1px solid rgba(255,45,85,0.3);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: slideUp 0.3s ease;
+  }
+
+  .error-card.show { display: block; }
+  .error-card .err-icon { font-size: 32px; margin-bottom: 10px; }
+  .error-card .err-title { font-size: 16px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+  .error-card .err-msg { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* Tips */
+  .tips {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    margin-top: auto;
+  }
+
+  .tips-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .tip-item:last-child { margin-bottom: 0; }
+  .tip-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">
+        <span>TT</span><span>Save</span>
+      </div>
+    </div>
+    <p class="tagline">حمّل فيديوهات تيك توك بدون علامة مائية ✨</p>
+  </header>
+
+  <!-- Install banner -->
+  <div id="install-banner">
+    <div class="install-icon">📲</div>
+    <div class="install-text">
+      <strong>ثبّت التطبيق على جهازك</strong>
+      <span>يعمل بدون إنترنت • أسرع وأسهل</span>
+    </div>
+    <button class="install-btn" onclick="installApp()">تثبيت</button>
+  </div>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="input-label">🔗 الصق رابط الفيديو</div>
+    <div class="input-wrap">
+      <input
+        type="url"
+        class="url-input"
+        id="urlInput"
+        placeholder="https://www.tiktok.com/@user/video/..."
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      >
+      <button class="paste-btn" onclick="pasteFromClipboard()">📋 لصق</button>
+    </div>
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchVideo()">
+      🔍 معاينة الفيديو
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="loader"></div>
+    <p>جاري جلب الفيديو...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-card" id="errorCard">
+    <div class="err-icon">😕</div>
+    <div class="err-title">تعذّر جلب الفيديو</div>
+    <div class="err-msg" id="errorMsg">تأكد من صحة الرابط وأن الفيديو عام</div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+
+    <!-- Video preview -->
+    <div class="video-preview" id="videoPreviewWrap">
+      <img class="video-thumb" id="videoThumb" src="" alt="thumbnail" onclick="toggleVideo()">
+      <video class="video-player" id="videoPlayer" controls playsinline></video>
+      <div class="play-overlay" id="playOverlay" onclick="toggleVideo()">
+        <div class="play-btn-big">▶</div>
+      </div>
+      <span class="hd-badge" id="hdBadge">بدون علامة</span>
+      <span class="duration-badge" id="durationBadge">0:00</span>
+    </div>
+
+    <!-- Meta -->
+    <div class="video-meta">
+      <div class="author-row">
+        <img class="author-avatar" id="authorAvatar" src="" alt="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'20\' fill=\'%231c1c26\'/%3E%3Ctext y=\'26\' x=\'20\' text-anchor=\'middle\' font-size=\'20\'%3E👤%3C/text%3E%3C/svg%3E'">
+        <div class="author-info">
+          <div class="author-name" id="authorName">—</div>
+          <div class="author-handle" id="authorHandle">@—</div>
+        </div>
+      </div>
+      <div class="video-title" id="videoTitle">—</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat"><span>❤️</span><strong id="statLikes">—</strong></div>
+      <div class="stat"><span>💬</span><strong id="statComments">—</strong></div>
+      <div class="stat"><span>🔁</span><strong id="statShares">—</strong></div>
+    </div>
+
+    <!-- Download -->
+    <div class="dl-section">
+      <div class="dl-title">⬇️ اختر جودة التحميل</div>
+      <div class="dl-options">
+
+        <button class="dl-btn primary" id="dlNoWatermark" onclick="downloadFile('nowm')">
+          <div class="dl-btn-icon">🎬</div>
+          <div class="dl-btn-info">
+            <div class="dl-btn-label">بدون علامة مائية</div>
+            <div class="dl-btn-sub">جودة عالية HD</div>
+          </div>
+          <div class="dl-btn-arrow">⬇</div>
+        </button>
+
+        <button class="dl-btn secondary" id="dlWatermark" onclick="downloadFile('wm')">
+          <div class="dl-btn-icon">📱</div>
+          <div class="dl-btn-info">
+            <div class="dl-btn-label">مع علامة تيك توك</div>
+            <div class="dl-btn-sub">النسخة الأصلية</div>
+          </div>
+          <div class="dl-btn-arrow">⬇</div>
+        </button>
+
+        <button class="dl-btn audio-btn" id="dlAudio" onclick="downloadFile('audio')">
+          <div class="dl-btn-icon">🎵</div>
+          <div class="dl-btn-info">
+            <div class="dl-btn-label">صوت فقط (MP3)</div>
+            <div class="dl-btn-sub">استخرج الموسيقى</div>
+          </div>
+          <div class="dl-btn-arrow">⬇</div>
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tips -->
+  <div class="tips">
+    <div class="tips-title">💡 كيف تستخدم التطبيق</div>
+    <div class="tip-item">
+      <div class="tip-num">1</div>
+      <span>افتح تيك توك واضغط <strong>مشاركة → نسخ الرابط</strong></span>
+    </div>
+    <div class="tip-item">
+      <div class="tip-num">2</div>
+      <span>ارجع هنا والصق الرابط واضغط <strong>معاينة الفيديو</strong></span>
+    </div>
+    <div class="tip-item">
+      <div class="tip-num">3</div>
+      <span>شاهد الفيديو قبل التحميل ثم اختر الجودة المناسبة</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── PWA Install ───────────────────────────────────────────────────────────
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.remove('show');
+  deferredPrompt = null;
+});
+
+async function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('install-banner').classList.remove('show');
+      deferredPrompt = null;
+    }
+  } else {
+    alert('لتثبيت التطبيق:\niOS: اضغط على زر المشاركة ← "إضافة إلى الشاشة الرئيسية"\nAndroid: اضغط على قائمة المتصفح ← "إضافة إلى الشاشة الرئيسية"');
+  }
+}
+
+// ─── Service Worker ─────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'ttsave-v1';
+    const ASSETS = ['/'];
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(clients.claim());
+    });
+    self.addEventListener('fetch', e => {
+      if (e.request.url.includes('tikwm.com') ||
+          e.request.url.includes('fonts.googleapis.com')) return;
+      e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(() => {});
+}
+
+// ─── State ──────────────────────────────────────────────────────────────────
+let videoData = null;
+let videoPlaying = false;
+
+// ─── Clipboard ──────────────────────────────────────────────────────────────
+async function pasteFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text) {
+      document.getElementById('urlInput').value = text;
+    }
+  } catch {
+    document.getElementById('urlInput').focus();
+    alert('اضغط مطولاً على حقل الإدخال ثم "لصق"');
+  }
+}
+
+// ─── Format numbers ─────────────────────────────────────────────────────────
+function fmt(n) {
+  if (!n) return '0';
+  n = parseInt(n);
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function fmtDuration(s) {
+  s = parseInt(s) || 0;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+// ─── Fetch video ─────────────────────────────────────────────────────────────
+async function fetchVideo() {
+  const url = document.getElementById('urlInput').value.trim();
+
+  if (!url) {
+    showError('الرجاء إدخال رابط الفيديو أولاً');
+    return;
+  }
+
+  if (!url.includes('tiktok.com') && !url.includes('vm.tiktok') && !url.includes('vt.tiktok')) {
+    showError('الرابط غير صحيح — يجب أن يكون رابط تيك توك');
+    return;
+  }
+
+  hideAll();
+  showLoading(true);
+
+  try {
+    const apiUrl = `https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`;
+    const resp = await fetch(apiUrl);
+    if (!resp.ok) throw new Error('خطأ في الاتصال بالخادم');
+    const json = await resp.json();
+
+    if (json.code !== 0 || !json.data) {
+      throw new Error(json.msg || 'لم نتمكن من جلب الفيديو');
+    }
+
+    videoData = json.data;
+    showLoading(false);
+    renderResult(videoData);
+
+  } catch (err) {
+    showLoading(false);
+    showError(err.message || 'حدث خطأ غير متوقع، حاول مجدداً');
+  }
+}
+
+// ─── Render result ───────────────────────────────────────────────────────────
+function renderResult(d) {
+  // Thumb
+  document.getElementById('videoThumb').src = d.cover || d.origin_cover || '';
+  document.getElementById('videoThumb').style.display = 'block';
+  document.getElementById('videoPlayer').style.display = 'none';
+  document.getElementById('playOverlay').style.display = 'flex';
+  videoPlaying = false;
+
+  // Duration
+  document.getElementById('durationBadge').textContent = fmtDuration(d.duration);
+
+  // Author
+  const author = d.author || {};
+  document.getElementById('authorAvatar').src = author.avatar || '';
+  document.getElementById('authorName').textContent = author.nickname || 'مجهول';
+  document.getElementById('authorHandle').textContent = '@' + (author.unique_id || '—');
+
+  // Title
+  document.getElementById('videoTitle').textContent = d.title || 'بدون وصف';
+
+  // Stats
+  document.getElementById('statLikes').textContent = fmt(d.digg_count);
+  document.getElementById('statComments').textContent = fmt(d.comment_count);
+  document.getElementById('statShares').textContent = fmt(d.share_count);
+
+  document.getElementById('resultCard').classList.add('show');
+
+  // Scroll into view
+  setTimeout(() => {
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ─── Toggle video preview ─────────────────────────────────────────────────
+function toggleVideo() {
+  if (!videoData) return;
+  const thumb = document.getElementById('videoThumb');
+  const player = document.getElementById('videoPlayer');
+  const overlay = document.getElementById('playOverlay');
+
+  if (!videoPlaying) {
+    const src = videoData.play || videoData.wmplay || '';
+    if (!src) { alert('المعاينة غير متاحة، جرّب التحميل المباشر'); return; }
+    player.src = src;
+    player.style.display = 'block';
+    thumb.style.display = 'none';
+    overlay.style.display = 'none';
+    player.play().catch(() => {});
+    videoPlaying = true;
+  } else {
+    player.pause();
+    player.src = '';
+    player.style.display = 'none';
+    thumb.style.display = 'block';
+    overlay.style.display = 'flex';
+    videoPlaying = false;
+  }
+}
+
+// ─── Download ────────────────────────────────────────────────────────────────
+function downloadFile(type) {
+  if (!videoData) return;
+
+  let url = '';
+  let filename = '';
+  const id = videoData.id || 'video';
+
+  if (type === 'nowm') {
+    url = videoData.hdplay || videoData.play || '';
+    filename = `ttsave_${id}.mp4`;
+  } else if (type === 'wm') {
+    url = videoData.wmplay || videoData.play || '';
+    filename = `ttsave_wm_${id}.mp4`;
+  } else if (type === 'audio') {
+    url = videoData.music || videoData.music_info?.play || '';
+    filename = `ttsave_audio_${id}.mp3`;
+  }
+
+  if (!url) {
+    alert('رابط التحميل غير متاح لهذا الخيار');
+    return;
+  }
+
+  // Try direct download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ─── UI helpers ──────────────────────────────────────────────────────────────
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('show', show);
+  document.getElementById('fetchBtn').disabled = show;
+  document.getElementById('fetchBtn').textContent = show ? 'جاري الجلب...' : '🔍 معاينة الفيديو';
+}
+
+function hideAll() {
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('errorCard').classList.remove('show');
+  document.getElementById('resultCard').classList.remove('show');
+  if (document.getElementById('videoPlayer').src) {
+    document.getElementById('videoPlayer').pause();
+    document.getElementById('videoPlayer').src = '';
+  }
+  videoPlaying = false;
+  videoData = null;
+}
+
+function showError(msg) {
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorCard').classList.add('show');
+}
+
+// ─── Enter key ───────────────────────────────────────────────────────────────
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchVideo();
+});
+
+// Auto-paste on focus if clipboard has tiktok link
+document.getElementById('urlInput').addEventListener('focus', async () => {
+  if (document.getElementById('urlInput').value) return;
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && (text.includes('tiktok.com') || text.includes('vm.tiktok'))) {
+      document.getElementById('urlInput').value = text;
+    }
+  } catch {}
+});
+</script>
+</body>
+</html>
