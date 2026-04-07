@@ -3,158 +3,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#fe2c55">
 <link rel="manifest" href="manifest.json">
-<title>TT Save - HD Downloader</title>
+<title>TT Save - HD PRO</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-  :root {
-    --bg: #0a0a0f; --surface: #13131a; --red: #ff2d55; --cyan: #00f2ea; --text: #f0f0f5;
-  }
+  :root { --bg: #000; --surface: #111; --red: #fe2c55; --cyan: #25f4ee; }
   * { margin:0; padding:0; box-sizing:border-box; font-family: 'Tajawal', sans-serif; }
-  body { background: var(--bg); color: var(--text); min-height: 100dvh; padding: 20px; }
-  .container { max-width: 450px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  body { background: var(--bg); color: #fff; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 15px; }
+  .app-card { width: 100%; max-width: 400px; background: var(--surface); border-radius: 30px; padding: 25px; border: 1px solid #222; text-align: center; }
   
-  header { text-align: center; padding: 20px 0; }
-  .logo { font-size: 32px; font-weight: 900; }
+  .logo { font-size: 35px; font-weight: 900; margin-bottom: 5px; }
   .logo span:first-child { color: var(--red); }
   .logo span:last-child { color: var(--cyan); }
-
-  .card { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 24px; }
-  .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-  input { flex: 1; background: #1c1c26; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; color: #fff; outline: none; }
   
-  .btn-main { width: 100%; background: linear-gradient(135deg, var(--red), var(--cyan)); border: none; border-radius: 14px; padding: 16px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
-
-  #result { display: none; margin-top: 20px; text-align: center; animation: fadeIn 0.5s; }
-  .preview-img { width: 100%; border-radius: 18px; margin-bottom: 15px; border: 2px solid var(--surface); }
+  .input-box { position: relative; margin: 25px 0; }
+  input { width: 100%; background: #222; border: 1.5px solid #333; border-radius: 15px; padding: 15px; color: #fff; outline: none; text-align: center; font-size: 14px; }
+  input:focus { border-color: var(--red); }
   
-  /* زر التحميل الـ HD الجديد */
-  .download-hd-btn {
-    width: 100%; background: #fff; color: #000; border: none; border-radius: 14px; padding: 18px;
-    font-weight: 900; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
-    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+  .btn-get { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 15px; padding: 16px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+  
+  #result-area { display: none; margin-top: 25px; animation: slideUp 0.4s ease; }
+  .thumb { width: 100%; border-radius: 20px; border: 2px solid #333; margin-bottom: 20px; }
+  
+  /* زر التحميل العملاق المعدل */
+  .btn-download {
+    width: 100%; background: var(--cyan); color: #000; border: none; border-radius: 15px; padding: 18px;
+    font-weight: 900; font-size: 18px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
   }
   
   .loading { display: none; margin: 20px 0; }
-  .spinner { width: 30px; height: 30px; border: 3px solid #1c1c26; border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-  
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <div class="logo"><span>TT</span><span>SAVE</span></div>
-    <p style="opacity: 0.6; font-size: 13px;">تحميل فيديو تيك توك بدقة 4K / HD</p>
-  </header>
+<div class="app-card">
+  <div class="logo"><span>TT</span><span>Save</span></div>
+  <p style="font-size: 12px; color: #888;">تحميل فيديو HD بدون علامة مائية</p>
 
-  <div class="card">
-    <div class="input-group">
-      <input type="url" id="tiktokUrl" placeholder="ضع رابط الفيديو هنا...">
-    </div>
-    <button class="btn-main" id="fetchBtn" onclick="getVideo()">استخراج الفيديو HD</button>
+  <div class="input-box">
+    <input type="url" id="vUrl" placeholder="الصق رابط تيك توك هنا...">
   </div>
+  
+  <button class="btn-get" id="mainBtn" onclick="processVideo()">استخراج الفيديو HD</button>
 
   <div class="loading" id="loader">
-    <div class="spinner"></div>
-    <p style="text-align:center; margin-top:10px;">جاري سحب الجودة العالية...</p>
+    <p style="color:var(--cyan)">⏳ جاري الاتصال بالسيرفر...</p>
   </div>
 
-  <div id="result">
-    <img id="cover" class="preview-img">
-    <h4 id="title" style="margin-bottom:15px; font-size:14px; opacity:0.8;"></h4>
-    <button class="download-hd-btn" onclick="forceDownloadHD()">
-       <span>📥</span> تحميل الفيديو بدقة HD
-    </button>
-    <p style="margin-top:15px; font-size:11px; color: var(--cyan);">ملاحظة: الفيديو ينزل مباشرة للأستوديو بدون علامة مائية</p>
+  <div id="result-area">
+    <img id="vCover" class="thumb">
+    <a id="finalDlLink" class="btn-download" href="#" download="video.mp4">
+       📥 تحميل الفيديو للأستوديو
+    </a>
+    <p style="margin-top: 15px; font-size: 11px; color: #666;">إذا فتح الفيديو بصفحة سودة، اضغط مطولاً عليه واختر "حفظ الفيديو"</p>
   </div>
 </div>
 
 <script>
-let finalVideoUrl = "";
+async function processVideo() {
+  const url = document.getElementById('vUrl').value.trim();
+  if(!url) return;
 
-async function getVideo() {
-  const url = document.getElementById('tiktokUrl').value.trim();
-  if(!url) return alert("وين الرابط يابة؟");
+  const btn = document.getElementById('mainBtn');
+  const loader = document.getElementById('loader');
+  const result = document.getElementById('result-area');
 
-  document.getElementById('loader').style.display = 'block';
-  document.getElementById('result').style.display = 'none';
+  btn.style.display = 'none';
+  loader.style.display = 'block';
+  result.style.display = 'none';
 
   try {
-    // نطلب من السيرفر أعلى جودة ممكنة (hd=1)
     const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
-    const json = await res.json();
+    const data = await res.json();
 
-    if(json.code === 0) {
-      const d = json.data;
-      // نأخذ رابط الـ HD وإذا ماكو نأخذ الأصلي (بس هو دائماً موجود)
-      finalVideoUrl = d.hdplay || d.play;
+    if(data.code === 0) {
+      const v = data.data;
+      const videoLink = v.hdplay || v.play;
       
-      document.getElementById('cover').src = d.cover;
-      document.getElementById('title').innerText = d.title;
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('result').style.display = 'block';
+      document.getElementById('vCover').src = v.cover;
+      
+      // السر هنا: نستخدم رابط يحول الفيديو إلى ملف تحميل فوراً
+      // هذا السيرفر الوسيط يجبر المتصفح على تحميل الملف بدلاً من تشغيله
+      const forcedDownloadUrl = `https://www.tikwm.com${v.hdplay || v.play}`;
+      
+      const dlBtn = document.getElementById('finalDlLink');
+      dlBtn.href = forcedDownloadUrl;
+      
+      loader.style.display = 'none';
+      result.style.display = 'block';
+      btn.style.display = 'block';
     } else {
-      alert("الرابط بي مشكلة أو الفيديو محذوف");
-      document.getElementById('loader').style.display = 'none';
+      alert("الرابط خطأ أو الفيديو خاص");
+      resetUI();
     }
   } catch (e) {
-    alert("صار خلل بالاتصال");
-    document.getElementById('loader').style.display = 'none';
+    alert("خلل بالسيرفر، جرب مرة ثانية");
+    resetUI();
   }
 }
 
-// الوظيفة السحرية للتحميل الإجباري وبأعلى دقة
-async function forceDownloadHD() {
-  if(!finalVideoUrl) return;
-  
-  const btn = document.querySelector('.download-hd-btn');
-  btn.innerText = "جاري الحفظ بالجهاز...";
-  btn.style.opacity = "0.5";
-
-  try {
-    const response = await fetch(finalVideoUrl);
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    // تسمية واضحة للملف حتى الجهاز يعرفه فيديو
-    link.download = `TikTok_HD_${Date.now()}.mp4`;
-    document.body.appendChild(link);
-    link.click();
-    
-    // تنظيف
-    setTimeout(() => {
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      btn.innerHTML = "<span>📥</span> تحميل الفيديو بدقة HD";
-      btn.style.opacity = "1";
-    }, 200);
-  } catch (err) {
-    // إذا المتصفح منع الـ Blob، نفتح الرابط مباشرة كحل أخير
-    window.open(finalVideoUrl, '_blank');
-    btn.innerHTML = "<span>📥</span> اضغط هنا للتحميل";
-    btn.style.opacity = "1";
-  }
+function resetUI() {
+  document.getElementById('mainBtn').style.display = 'block';
+  document.getElementById('loader').style.display = 'none';
 }
 
-// استقبال الروابط من مشاركة تيك توك مباشرة
-window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const sharedText = urlParams.get('text') || urlParams.get('url');
-  if (sharedText) {
-    const link = sharedText.match(/https?:\/\/[^\s]+/);
-    if (link) {
-      document.getElementById('tiktokUrl').value = link[0];
-      getVideo();
+// دعم المشاركة المباشرة
+window.onload = () => {
+  const params = new URLSearchParams(window.location.search);
+  const shared = params.get('text') || params.get('url');
+  if(shared) {
+    const link = shared.match(/https?:\/\/[^\s]+/);
+    if(link) {
+      document.getElementById('vUrl').value = link[0];
+      processVideo();
     }
   }
-});
+};
 </script>
 
 </body>
